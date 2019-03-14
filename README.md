@@ -12,6 +12,9 @@ Blade root forces and bending moments (Fxy, Fz, My)
 Pitch angle displacement
 Timesteps
 
+![image](https://user-images.githubusercontent.com/25690525/54380602-c6b63200-4683-11e9-8d8c-0b45f0eb7df1.png)
+
+
 #### The process for the program:
 1) Load the loading data
 2) Create brg_design object using design parameters
