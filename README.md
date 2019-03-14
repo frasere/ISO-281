@@ -2,7 +2,7 @@
 
 This notebook implements a fatigue life estimation approach for ball and roller bearings using the ISO 281 approach, adopted for use for bearings in oscillatory applications such as wind and tidal turbine pitch systems according to NREL Wind Turbine Design Guideline 03: Yaw and Pitch Bearing Life.
 
-ISO standard IMAGE GOES HERE
+![image](https://user-images.githubusercontent.com/25690525/54380499-8c4c9500-4683-11e9-8c0d-528f0ed48c2d.png)
 
 ## Program Description and Structure
 The program runs assuming loading calculations have already been carried out either via simulation or from sensor readings on the turbine. An excel file for each load case must be created and hava an associated duty cycle. 
