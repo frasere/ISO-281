@@ -4,6 +4,8 @@ This notebook implements a fatigue life estimation approach for ball and roller 
 
 ![image](https://user-images.githubusercontent.com/25690525/54380499-8c4c9500-4683-11e9-8c0d-528f0ed48c2d.png)
 
+
+
 ## Program Description and Structure
 The program runs assuming loading calculations have already been carried out either via simulation or from sensor readings on the turbine. An excel file for each load case must be created and hava an associated duty cycle. 
 
@@ -13,6 +15,9 @@ Pitch angle displacement
 Timesteps
 
 ![image](https://user-images.githubusercontent.com/25690525/54380602-c6b63200-4683-11e9-8d8c-0b45f0eb7df1.png)
+
+
+
 
 
 #### The process for the program:
