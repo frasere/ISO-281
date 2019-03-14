@@ -1,9 +1,8 @@
 # ISO_281 Bearing Life Calculations
-Bearing Dynamic Load Rating and Life calculations 
 
-This notebook implements a fatigue life estimation approach for roller bearings using the ISO 281 approach.
+This notebook implements a fatigue life estimation approach for ball and roller bearings using the ISO 281 approach, adopted for use for bearings in oscillatory applications such as wind and tidal turbines according to NREL Wind Turbine Design Guideline 03: Yaw and Pitch Bearing Life.
 
-
+ISO standard IMAGE GOES HERE
 
 ### Program Description and Structure
 What the project does
@@ -15,7 +14,6 @@ Why the porject is useful
 
 
 ### Maintenance and Support
-
 Where users can help
 Who maintains and contributes
 
