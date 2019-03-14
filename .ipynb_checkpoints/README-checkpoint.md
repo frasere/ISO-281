@@ -1,23 +1,35 @@
-# ISO_281 Bearing Life Calculations
+# ISO 281 Bearing Life Calculations
 
-This notebook implements a fatigue life estimation approach for ball and roller bearings using the ISO 281 approach, adopted for use for bearings in oscillatory applications such as wind and tidal turbines according to NREL Wind Turbine Design Guideline 03: Yaw and Pitch Bearing Life.
+This notebook implements a fatigue life estimation approach for ball and roller bearings using the ISO 281 approach, adopted for use for bearings in oscillatory applications such as wind and tidal turbine pitch systems according to NREL Wind Turbine Design Guideline 03: Yaw and Pitch Bearing Life.
 
 ISO standard IMAGE GOES HERE
 
-### Program Description and Structure
-What the project does
-Why the porject is useful
+## Program Description and Structure
+The program runs assuming loading calculations have already been carried out either via simulation or from sensor readings on the turbine. An excel file for each load case must be created and hava an associated duty cycle. 
+
+##### Load case data requirements (from simulations or sensor readings):
+Blade root forces and bending moments (Fxy, Fz, My)
+Pitch angle displacement
+Timesteps
+
+#### The process for the program:
+1) Load the loading data
+2) Create brg_design object using design parameters
+3) Create load_case_comb object  - to combine load cases from each tidal profile
+4) Create tidal_profile_comb object - to combine all tidal profiles with duty cycle information
+5) Create life_calcs object to get pitch system bearing lifetime estimation
 
 
-### How users get started
+
+## How users get started
 
 
 
-### Maintenance and Support
+## Maintenance and Support
 Where users can help
 Who maintains and contributes
 
-### Copyright
+## Copyright
 
 MIT License
 
