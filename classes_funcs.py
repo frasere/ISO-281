@@ -14,12 +14,13 @@ class brg_design():
     # all bearings have design parameters listed in __init__
     # Ca_rot is brg dynamic axial load rating and is a feature of brg design
     
-    def __init__(self,i,z,dw,alpha,D,d,pu,kind,ca_manuf=None):
+    def __init__(self,i,z,dw,alpha,D,d,pu,kind,H,ca_manuf=None):
         # attributes of a bearing       
         self.i = i # no. of rows
         self.z = z # no. of brgs in a row
         self.dw = dw # diameter of indiv. brg  mm
         self.alpha = alpha # contact angle in degrees
+        self.H = H # individual unit heiht in mm
         self.D = D # outside diameter mm
         self.d = d # inside (bore) diameter mm
         self.pu = pu    # fatigue limit load (from manufacturers catalogue)  in N
@@ -34,12 +35,16 @@ class brg_design():
         # pitch diameter mm
         return (self.D + self.d)/2
     
-    def Ca_rot(self,fc):
+    def Ca_rot(self):
         # brg dynamic axial load rating rotational
-        if self.kind == 'ball':
-            ca = (3.647*(self.i*fc*np.cos(np.deg2rad(self.alpha))**0.7)*(self.z**(2/3))*(self.dw**1.4)*np.tan(np.deg2rad(self.alpha)))
+        if self.ca_manuf != None:
+            ca = self.ca_manuf
         else:
-            ca = ((self.i*fc*np.cos(np.deg2rad(self.alpha))**0.7)*(self.z**(2/3))*(self.dw**1.4)*np.tan(np.deg2rad(self.alpha)))
+            fc = float(input('Enter fc value (from ISO 281 tables): '))    # user inputs fc value if not providing Ca_manuf
+            if self.kind == 'ball':
+                ca = 1.1*(3.647*fc*(self.i*np.cos(np.deg2rad(self.alpha))**0.7)*(self.z**(2/3))*(self.dw**1.4)*np.tan(np.deg2rad(self.alpha)))
+            else:
+                ca = 1.1*fc*((self.H*np.cos(np.deg2rad(self.alpha))**(7/9))*(self.z**(3/4))*(self.dw**(29/37))*np.tan(np.deg2rad(self.alpha)))
         return ca
 
 ######################################################################################################################

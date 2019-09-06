@@ -14,13 +14,15 @@ class brg_design():
     # all bearings have design parameters listed in __init__
     # Ca_rot is brg dynamic axial load rating and is a feature of brg design
     
-    def __init__(self,i,z,dw,alpha,dp,pu,kind,ca_manuf=None):
+    def __init__(self,i,z,dw,alpha,D,d,pu,kind,H,ca_manuf=None):
         # attributes of a bearing       
         self.i = i # no. of rows
         self.z = z # no. of brgs in a row
         self.dw = dw # diameter of indiv. brg  mm
         self.alpha = alpha # contact angle in degrees
-        self.dp = dp # pitch diameter m
+        self.H = H # individual unit heiht in mm
+        self.D = D # outside diameter mm
+        self.d = d # inside (bore) diameter mm
         self.pu = pu    # fatigue limit load (from manufacturers catalogue)  in N
         self.kind = kind  # is the bearing a ball or roller
         if self.kind == 'ball':
@@ -28,13 +30,21 @@ class brg_design():
         elif self.kind == 'roller':
             self.p = 3.3
         self.ca_manuf = ca_manuf # axial load rating (from manuf. catalogue else can calculate)  N
+        
+    def dp(self):
+        # pitch diameter mm
+        return (self.D + self.d)/2
     
-    def Ca_rot(self,fc):
+    def Ca_rot(self):
         # brg dynamic axial load rating rotational
-        if self.kind == 'ball':
-            ca = (3.647*(self.i*fc*np.cos(np.deg2rad(self.alpha))**0.7)*(self.z**(2/3))*(self.dw**1.4)*np.tan(np.deg2rad(self.alpha)))
+        if self.ca_manuf != None:
+            ca = self.ca_manuf
         else:
-            ca = ((self.i*fc*np.cos(np.deg2rad(self.alpha))**0.7)*(self.z**(2/3))*(self.dw**1.4)*np.tan(np.deg2rad(self.alpha)))
+            fc = float(input('Enter fc value (from ISO 281 tables): '))    # user inputs fc value if not providing Ca_manuf
+            if self.kind == 'ball':
+                ca = 1.1*(3.647*fc*(self.i*np.cos(np.deg2rad(self.alpha))**0.7)*(self.z**(2/3))*(self.dw**1.4)*np.tan(np.deg2rad(self.alpha)))
+            else:
+                ca = 1.1*fc*((self.H*np.cos(np.deg2rad(self.alpha))**(7/9))*(self.z**(3/4))*(self.dw**(29/37))*np.tan(np.deg2rad(self.alpha)))
         return ca
 
 ######################################################################################################################
@@ -56,25 +66,26 @@ def import_excel_file(file_name,file_location,cols):
 class load_case_comb():
     # combine load cases for each tidal profile and calculate theta, N, P
     
-    def __init__(self,file_location,col_headers,brg_p):
+    def __init__(self,file_location,col_headers,brg_p,brg_dp):
         self.file_location = file_location
         self.col_headers = col_headers
         self.brg_p = brg_p
+        self.brg_dp = brg_dp
         
     def load_data(self):
         # load raw load case data from TB
         sim_data = [import_excel_file(os.listdir(self.file_location)[i],self.file_location,self.col_headers) for i in range(len(os.listdir(self.file_location)))]
         return sim_data
     
-    def lc_df(self,brg_dp):
+    def lc_df(self):
         # units are kN and m
         TB_data = self.load_data()
         Fr = [np.sqrt((np.sum((np.absolute(TB_data[i]['Fxy'])**2))/np.size(TB_data[i]['Fxy']))) for i in range(len(TB_data))]
         Fa = [np.sqrt((np.sum((np.absolute(TB_data[i]['Fz'])**2))/np.size(TB_data[i]['Fz'])))for i in range(len(TB_data))]
         My = [np.sqrt((np.sum((np.absolute(TB_data[i]['My'])**2))/np.size(TB_data[i]['My'])))for i in range(len(TB_data))]
-        P_eak = [(0.75*Fr[i])+(Fa[i])+(2*My[i]/(brg_dp/1000)) for i in range(len(TB_data))]
-        osc_amp = [abs(TB_data[i]['PS deg'].diff()).mean() for i in range(len(TB_data))]
-        osc_opm = [(abs(TB_data[i]['PS deg'].diff()).sum()/(len(TB_data[i]['PS deg'])/60)) for i in range(len(TB_data))]
+        P_eak = [(0.75*Fr[i])+(Fa[i])+(2*My[i]/(self.brg_dp/1000)) for i in range(len(TB_data))]
+        osc_amp = [abs(TB_data[i]['PS deg'].diff()).mean() for i in range(len(TB_data))]   # amplitude
+        osc_opm = [(abs(TB_data[i]['PS deg'].diff()).sum()/(len(TB_data[i]['PS deg'])/60)) for i in range(len(TB_data))]  # speed
         df = pd.DataFrame({'Osc_amp deg':osc_amp,'Speed opm':osc_opm,'Fr rms':Fr,'Fa rms':Fa,'My rms': My,'Dyn Equiv Load':P_eak})
         return df
 
@@ -97,6 +108,7 @@ class tidal_profile_comb():
         return df
     
     def dyn_equiv_osc(self):
+        # dynamic equivalent load (oscillatory)
         df = self.tp_comb()
         numerator = np.sum((df['Dyn Equiv Load']**self.brg_p)*df['Speed opm']*df['Duty Cycle']*df['Osc_amp deg'])
         denominator = np.sum(df['Speed opm']*df['Duty Cycle']*df['Osc_amp deg'])
@@ -126,7 +138,7 @@ class tidal_profile_comb():
 class life_calcs():
     # class for performing life calculations
     
-    def __init__(self,brg_ca_osc,Pea_osc,kind,dp,lub_contam_level,pu,rel_level,k=0.076):
+    def __init__(self,brg_ca_osc,Pea_osc,kind,dp,lub_contam_level,pu,rel_level,use_ISO_correction,k=0.076):
         self.brg_ca_osc = brg_ca_osc   # brg osc axial load rating
         self.Pea_osc = Pea_osc  # oscillatory dynamic equivalent load
         self.kind = kind   # brg type
@@ -139,6 +151,7 @@ class life_calcs():
             self.p = 3.3
         self.pu = pu  # bearing fatigue limit (from manufacturers catalogue)
         self.rel_level = rel_level
+        self.use_ISO_correction = use_ISO_correction
         
     def eta(self):
         # parameter of a_iso calculation
@@ -165,8 +178,13 @@ class life_calcs():
     
     def L10_mill_osc(self):
         # L10 ISO life equation (millions of oscillations)
-        l10 = self.a_iso()*self.a1()*(self.brg_ca_osc/self.Pea_osc)**self.p
-        return l10[0]
+        if self.use_ISO_correction =='Yes':
+            l10 = self.a_iso()*self.a1()*(self.brg_ca_osc/self.Pea_osc)**self.p
+        elif self.use_ISO_correction =='No':
+            l10 = (self.brg_ca_osc/self.Pea_osc)**self.p
+        else: 
+            print('Huh? Tell me Yes or No')
+        return l10
     
     def L10_hrs(self,N_ave):
         # L10 ISO life equation (hrs)
